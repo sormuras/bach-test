@@ -16,6 +16,7 @@ import run.bach.ToolOperator;
 public class CompileModulesTool implements ToolOperator {
 
   static final String NAME = "compile-modules";
+  private static final String PATH_SEPARATOR = System.getProperty("path.separator");
 
   public CompileModulesTool() {}
 
@@ -124,12 +125,14 @@ public class CompileModulesTool implements ToolOperator {
         var javac = ToolCall.of("javac").with("--release", release);
         var modulePath = context.space().toModulePath(context.bach().paths());
         if (modulePath.isPresent()) {
-          javac = javac.with("--module-path", modulePath.get());
+          javac = javac.with("--module-path", modulePath.get() + PATH_SEPARATOR + classes0);
           javac = javac.with("--processor-module-path", modulePath.get());
+        } else {
+          javac = javac.with("--module-path", classes0);
         }
         javac =
             javac
-                .with("--class-path", classes0.resolve(name))
+                .with("--patch-module", module.name() + "=" + sources)
                 .with("-implicit:none")
                 .with("-d", classesR)
                 .withFindFiles(sources, "**.java");
